@@ -1,0 +1,7 @@
+Flask
+pandas
+matplotlib
+seaborn
+azure-storage-blob
+
+./package/model_warehouse-2.0.0-py3-none-any.whl
