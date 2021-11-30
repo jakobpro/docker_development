@@ -7,7 +7,7 @@ WORKDIR /opt/app
 RUN pip install -r requirements.txt
 
 # Run code
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./app.py" ]
 
 # Start app
 EXPOSE 5000
