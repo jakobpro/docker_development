@@ -1,7 +1,7 @@
-FROM python:3.9-slim-bullseye
+FROM python:3.8.10
 
-COPY . /opt/app
-WORKDIR /opt/app
+COPY . /opt/src
+WORKDIR /opt/src
 
 # Installing packages
 RUN pip install -r requirements.txt
