@@ -4,36 +4,19 @@ from mwarehouse.forecasting.models.traditional import HoltWinters, Sarimax
 from mwarehouse.forecasting.models.networks import multi_input, single_input
 from mwarehouse.forecasting.postprocessing import Visualization
 from mwarehouse.forecasting.preprocessing import DataFormater
-import os
+import os 
+import numpy as np
 
 import seaborn as snscond
 import matplotlib.pyplot as plt
 
 
-def trainingStep(data):
+def trainingStep(data,TimeColumn,Time_format,LabelColumn,Holdout,Resample_frequency,Epoches,Horizon,InputWidth,Shift,SizeTraining,SinCos,select_model_automatically,FillFuture):
     # --------------------------------------------- Argument Parsing --------------------------------------------------------
 
     print("--------------- Loading Arguments ----------------")
-    
 
     # --------------------------------------------- Training Process ------------------------------------------------------
-    TimeColumn = "date"
-    Time_format = "%Y-%m-%d " #format guideline https://strftime.org/ -> eg. 2016-01-06 00:00:00 would be "%Y-%m-%d %H:%M:%S"
-
-
-    Holdout = 100
-    Resample_frequency = 'D'
-    Epoches = 2
-    Horizon = 100
-    InputWidth = 2
-    LabelColumn = "sales" #if aggregating then add _aggregationMethod (eg. "sales_sum")
-    Shift = 1
-    SizeTraining = 0.7
-
-    SinCos = True
-
-    select_model_automatically = False 
-
     print("--------------- Starting Preprocessing ----------------")
     formater = DataFormater(data, TimeColumn, LabelColumn, format = Time_format)
 
@@ -87,9 +70,33 @@ def trainingStep(data):
 
     # reset index because next step expects a date column
     data = formater.get_df().reset_index()
-
-    print(data.shape)
-    print(data.head())
+    
+    # Fill future frame for future predictions: In development! --> Only supported for data without Exogenous features!
+    if FillFuture:
+        print('Attention: Handle <Fill Future> with caution. Only supported for Data without Exogenous features. ! In Preview !')
+        print('Attention: Currently not working as expected!')
+        
+        if data.shape[1] == 2:
+            start = data[TimeColumn].max() + np.timedelta64(1,Resample_frequency)
+            start = start.strftime(Time_format)
+            
+            # Create new (empty) timeFrame of time values
+            time = pd.date_range(start, periods=Holdout + Shift, freq=Resample_frequency).to_numpy()
+            
+            # Empty Numpy Array
+            empty = np.empty((time.shape[0],2))
+            empty[:] = np.NaN
+            
+            # New Dataframe with empty array
+            appending_df = pd.DataFrame(columns=[TimeColumn,LabelColumn],data=empty)
+            appending_df[TimeColumn] = time
+            
+            # Combine Dataframes
+            data = data.append(appending_df).reset_index(drop=True)
+            data = data.fillna(method='ffill')
+        else:
+            raise TypeError("Error: Fill Future Frame only supports Data without exogenous features.")
+    print(data.tail(30))
 
     print("--------------- Splitting Data ----------------")
 
@@ -281,4 +288,4 @@ def trainingStep(data):
     print(vis.prediction)
     
     
-    return vis
+    return vis, selected_model, selected_model_name

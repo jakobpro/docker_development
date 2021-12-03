@@ -4,5 +4,9 @@ matplotlib
 seaborn
 azure-storage-blob
 tqdm
+numpy
+statsmodels
+scipy
+openpyxl
 
 ./package/model_warehouse-2.0.1-py3-none-any.whl
